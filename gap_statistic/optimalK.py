@@ -274,8 +274,19 @@ class OptimalK:
 
         # For n_references, generate random sample and perform kmeans getting resulting dispersion of each loop
         for i in range(n_refs):
-            # Create new random reference set uniformly over the range of each feature
-            random_data = self._rs.random_sample(size=X.shape) * (b - a) + a
+            # Create new random reference set based on the binary input
+            rows, cols = X.shape
+            random_data = self._rs.randint(2, size=(rows, cols))
+
+            proportions = np.mean(X, axis=0)
+
+            for col in range(cols):
+                num_ones = int(proportions[col] * rows)
+                random_data[:num_ones, col] = 1
+                random_data[num_ones:, col] = 0
+
+            for col in range(cols):
+                self._rs.shuffle(random_data[:, col])
 
             # Fit to it, getting the centroids and labels, and add to accumulated reference dispersions array.
             centroids, labels = self.clusterer(
